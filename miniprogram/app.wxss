@@ -1,0 +1,107 @@
+page {
+  background: #f6f7f9;
+  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 28rpx;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.section {
+  background: #ffffff;
+  border: 1rpx solid #e2e8f0;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.muted {
+  color: #64748b;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999rpx;
+  padding: 6rpx 14rpx;
+  font-size: 24rpx;
+  color: #0f766e;
+  background: #ccfbf1;
+}
+
+.tag.warn {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.tag.done {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.btn {
+  margin: 0;
+  border-radius: 10rpx;
+  background: #0f766e;
+  color: #ffffff;
+  font-size: 28rpx;
+}
+
+.btn.secondary {
+  background: #334155;
+}
+
+.btn.ghost {
+  background: #ffffff;
+  color: #0f766e;
+  border: 1rpx solid #0f766e;
+}
+
+.input,
+.textarea,
+.picker {
+  width: 100%;
+  min-height: 84rpx;
+  padding: 18rpx 20rpx;
+  border: 1rpx solid #cbd5e1;
+  border-radius: 10rpx;
+  box-sizing: border-box;
+  background: #ffffff;
+}
+
+.textarea {
+  min-height: 140rpx;
+}
+
+.field {
+  margin-bottom: 20rpx;
+}
+
+.label {
+  display: block;
+  margin-bottom: 10rpx;
+  color: #334155;
+  font-weight: 600;
+}
+
+.empty {
+  padding: 48rpx 24rpx;
+  color: #64748b;
+  text-align: center;
+}

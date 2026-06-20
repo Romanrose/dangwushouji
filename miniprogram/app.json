@@ -1,0 +1,44 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/student/home/home",
+    "pages/teachers/teachers",
+    "pages/create/create",
+    "pages/detail/detail",
+    "pages/scan/scan",
+    "pages/stats/stats"
+  ],
+  "window": {
+    "navigationBarTitleText": "党务材料登记",
+    "navigationBarBackgroundColor": "#0F766E",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#F6F7F9"
+  },
+  "tabBar": {
+    "color": "#64748B",
+    "selectedColor": "#0F766E",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "台账",
+        "iconPath": "icons/tab_list.png",
+        "selectedIconPath": "icons/tab_list_active.png"
+      },
+      {
+        "pagePath": "pages/stats/stats",
+        "text": "统计",
+        "iconPath": "icons/tab_stats.png",
+        "selectedIconPath": "icons/tab_stats_active.png"
+      }
+    ]
+  },
+  "permission": {
+    "scope.camera": {
+      "desc": "用于扫描材料二维码进行登记"
+    }
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,17 @@
+{
+  "name": "dangwushouji",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "check": "node --check api/rpc.js && node --check miniprogram/utils/api.js",
+    "deploy:proxy": "GLOBAL_AGENT_HTTP_PROXY=http://127.0.0.1:7897 NODE_OPTIONS=--require=global-agent/bootstrap vercel --prod --yes"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2"
+  },
+  "devDependencies": {
+    "global-agent": "^3.0.0",
+    "vercel": "^48.6.0"
+  }
+}

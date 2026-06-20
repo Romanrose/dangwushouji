@@ -1,0 +1,77 @@
+<view class="page">
+  <form bindsubmit="submit">
+    <view class="section">
+      <view class="field">
+        <text class="label">材料名称</text>
+        <picker mode="selector" range="{{materialOptions}}" range-key="label" value="{{selectedMaterialIndex}}" bindchange="setMaterialType">
+          <view class="picker">{{selectedMaterialLabel || '请选择材料名称'}}</view>
+        </picker>
+      </view>
+
+      <view wx:if="{{showPersonNameField}}" class="field dependent-field">
+        <text class="label">资料袋人员姓名</text>
+        <input class="input" name="person_file_name" placeholder="请输入资料袋对应人员姓名" bindinput="setPersonFileName" />
+      </view>
+
+      <view wx:if="{{showMeetingBookFields}}" class="field-grid dependent-field">
+        <view class="field half">
+          <text class="label">记录年份</text>
+          <picker mode="selector" range="{{yearOptions}}" value="{{selectedYearIndex}}" bindchange="setMeetingYear">
+            <view class="picker">{{meeting_year || '请选择年份'}}</view>
+          </picker>
+        </view>
+        <view class="field half">
+          <text class="label">记录本类型</text>
+          <picker mode="selector" range="{{meetingBookTypes}}" value="{{selectedMeetingTypeIndex}}" bindchange="setMeetingBookType">
+            <view class="picker">{{meeting_book_type || '请选择类型'}}</view>
+          </picker>
+        </view>
+      </view>
+
+      <view wx:if="{{showSpecificNameField}}" class="field dependent-field">
+        <text class="label">具体材料名称</text>
+        <input class="input" name="specific_material_name" placeholder="请输入学习材料具体名称" bindinput="setSpecificMaterialName" />
+      </view>
+      <view class="field">
+        <text class="label">材料编号</text>
+        <view class="picker">保存后自动生成，如 20260620-001</view>
+      </view>
+      <view class="field">
+        <text class="label">批次（选填）</text>
+        <input class="input" name="batch_name" placeholder="可不填，例如：2026年6月第一批" />
+      </view>
+      <view class="field">
+        <text class="label">领用人所在支部</text>
+        <picker mode="selector" range="{{branchOptions}}" value="{{selectedBranchIndex}}" bindchange="setBranch">
+          <view class="picker">{{branch || '请选择领用人所在支部'}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="label">领用人姓名</text>
+        <input class="input" name="assigned_user" placeholder="请输入领用人姓名" />
+      </view>
+      <view class="field">
+        <text class="label">签领人</text>
+        <input class="input" name="signer_name" placeholder="请输入签领人姓名" />
+      </view>
+      <view class="field">
+        <text class="label">领取截止日期</text>
+        <picker mode="date" name="receive_deadline" bindchange="setReceiveDeadline">
+          <view class="picker">{{receive_deadline || '请选择'}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="label">回收截止日期</text>
+        <picker mode="date" name="return_deadline" bindchange="setReturnDeadline">
+          <view class="picker">{{return_deadline || '请选择'}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="label">备注</text>
+        <textarea class="textarea" name="remark" placeholder="可记录份数、交接要求等"></textarea>
+      </view>
+    </view>
+    <view wx:if="{{saveMessage}}" class="save-message">{{saveMessage}}</view>
+    <button class="btn" form-type="submit" loading="{{saving}}">保存材料</button>
+  </form>
+</view>

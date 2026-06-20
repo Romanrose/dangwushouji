@@ -1,0 +1,90 @@
+.section-title {
+  margin-bottom: 18rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.copy-row,
+.teacher-item,
+.application-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.openid {
+  max-width: 500rpx;
+  color: #475569;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 24rpx;
+  word-break: break-all;
+}
+
+.mini-btn {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.teacher-item,
+.application-item {
+  padding: 20rpx 0;
+  border-top: 1rpx solid #e2e8f0;
+}
+
+.application-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.compact-row {
+  justify-content: flex-start;
+  gap: 12rpx;
+  margin-bottom: 10rpx;
+}
+
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-shrink: 0;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  color: #92400e;
+  background: #fef3c7;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.status-badge.approved {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.status-badge.rejected {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.teacher-name {
+  margin-bottom: 8rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.danger {
+  background: #b91c1c;
+}
+
+.small {
+  padding: 24rpx;
+}
+
+.fallback-section {
+  opacity: 0.92;
+}

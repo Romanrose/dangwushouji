@@ -1,0 +1,77 @@
+<view class="page">
+  <view class="dashboard-head">
+    <view>
+      <view class="title">统计看板</view>
+      <view class="muted">进度、风险和支部分布</view>
+    </view>
+    <view class="completion">
+      <view class="completion-num">{{completionRate}}%</view>
+      <view class="completion-label">完成率</view>
+    </view>
+  </view>
+
+  <view class="progress-section">
+    <view class="progress-track">
+      <view class="progress-bar pending" style="width: {{pendingPercent}}%;"></view>
+      <view class="progress-bar active" style="width: {{receivedPercent}}%;"></view>
+      <view class="progress-bar done" style="width: {{returnedPercent}}%;"></view>
+    </view>
+    <view class="legend">
+      <view><text class="dot pending-dot"></text>待领取 {{stats.pending_receive || 0}}</view>
+      <view><text class="dot active-dot"></text>未回收 {{stats.received || 0}}</view>
+      <view><text class="dot done-dot"></text>已回收 {{stats.returned || 0}}</view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="row">
+      <view class="section-title">风险提醒</view>
+      <view class="muted">{{unreturned.length}} 条</view>
+    </view>
+    <view wx:if="{{loading}}" class="empty">加载中...</view>
+    <view wx:elif="{{unreturned.length === 0}}" class="empty small">暂无已领取未回收材料</view>
+    <view wx:for="{{unreturned}}" wx:key="material_id" class="risk-item" data-id="{{item.material_id}}" bindtap="goDetail">
+      <view class="row">
+        <view class="item-title">{{item.name}}</view>
+        <view class="risk-tag">待回收</view>
+      </view>
+      <view class="meta">领用人：{{item.received_person || item.assigned_user || '-'}}｜支部：{{item.branch || '-'}}</view>
+      <view class="meta">回收截止：{{item.return_deadline || '未设置'}}</view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="row">
+      <view class="section-title">支部分布</view>
+      <view class="muted">{{branchSummary.length}} 个</view>
+    </view>
+    <view wx:if="{{branchSummary.length === 0}}" class="empty small">暂无支部数据</view>
+    <view wx:for="{{branchSummary}}" wx:key="branch" class="branch-item">
+      <view class="row">
+        <view class="item-title">{{item.branch}}</view>
+        <view class="muted">{{item.total}} 份</view>
+      </view>
+      <view class="branch-line">
+        <view class="branch-bar done" style="width: {{item.returnedPercent}}%;"></view>
+        <view class="branch-bar active" style="width: {{item.receivedPercent}}%;"></view>
+        <view class="branch-bar pending" style="width: {{item.pendingPercent}}%;"></view>
+      </view>
+      <view class="branch-meta">待领取 {{item.pending_receive || 0}}｜未回收 {{item.received || 0}}｜已回收 {{item.returned || 0}}</view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="row">
+      <view class="section-title">最近流转</view>
+      <view class="muted">{{recentRecords.length}} 条</view>
+    </view>
+    <view wx:if="{{recentRecords.length === 0}}" class="empty small">暂无流转记录</view>
+    <view wx:for="{{recentRecords}}" wx:key="_id" class="record-item">
+      <view class="row">
+        <view class="item-title">{{item.material_no}}</view>
+        <view class="record-tag {{item.action_type === 'return' ? 'done-tag' : ''}}">{{item.actionText}}</view>
+      </view>
+      <view class="meta">领用人：{{item.person || '-'}}｜签领人：{{item.operator || '-'}}｜{{item.action_time_text}}</view>
+    </view>
+  </view>
+</view>

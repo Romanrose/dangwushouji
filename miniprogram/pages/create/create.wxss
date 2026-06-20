@@ -1,0 +1,28 @@
+button {
+  margin-top: 20rpx;
+}
+
+.field-grid {
+  display: flex;
+  gap: 16rpx;
+}
+
+.half {
+  flex: 1;
+}
+
+.dependent-field {
+  padding: 18rpx;
+  border-radius: 10rpx;
+  background: #f0fdfa;
+  border: 1rpx solid #99f6e4;
+}
+
+.save-message {
+  margin: 20rpx 0 0;
+  padding: 18rpx;
+  border-radius: 10rpx;
+  color: #334155;
+  background: #f8fafc;
+  border: 1rpx solid #e2e8f0;
+}

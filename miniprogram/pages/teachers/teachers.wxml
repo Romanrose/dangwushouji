@@ -1,0 +1,70 @@
+<view class="page">
+  <view class="section">
+    <view class="title">老师管理</view>
+    <view class="muted">管理可进入台账、统计和材料详情的老师账号。</view>
+  </view>
+
+  <view wx:if="{{currentUser.openid}}" class="section">
+    <view class="section-title">当前登录</view>
+    <view class="copy-row">
+      <view class="openid">{{currentUser.openid}}</view>
+      <button class="btn ghost mini-btn" size="mini" bindtap="copyCurrentOpenid">复制</button>
+    </view>
+    <view class="muted">老师权限以微信 openid 为准。建议让对方在学生端点击申请，再由这里通过。</view>
+  </view>
+
+  <view class="section">
+    <view class="row">
+      <view class="section-title">老师申请</view>
+      <view class="muted">{{applications.length}} 条</view>
+    </view>
+    <view wx:if="{{loading}}" class="empty small">加载中...</view>
+    <view wx:elif="{{applications.length === 0}}" class="empty small">暂无申请</view>
+    <view wx:for="{{applications}}" wx:key="openid" class="application-item">
+      <view class="application-main">
+        <view class="row compact-row">
+          <view class="status-badge {{item.status}}">{{item.status_text}}</view>
+          <view class="muted">{{item.updated_at_text}}</view>
+        </view>
+        <view class="openid">{{item.openid}}</view>
+      </view>
+      <view wx:if="{{item.status === 'pending'}}" class="action-row">
+        <button class="btn mini-btn" size="mini" data-openid="{{item.openid}}" bindtap="approveApplication">通过</button>
+        <button class="btn danger mini-btn" size="mini" data-openid="{{item.openid}}" bindtap="rejectApplication">拒绝</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="row">
+      <view class="section-title">老师名单</view>
+      <view class="muted">{{teachers.length}} 人</view>
+    </view>
+    <view wx:if="{{loading}}" class="empty small">加载中...</view>
+    <view wx:elif="{{teachers.length === 0}}" class="empty small">暂无老师记录</view>
+    <view wx:for="{{teachers}}" wx:key="openid" class="teacher-item">
+      <view>
+        <view class="teacher-name">{{item.name || '未命名老师'}}</view>
+        <view class="openid">{{item.openid}}</view>
+        <view class="muted">{{item.created_at_text}}</view>
+      </view>
+      <button class="btn danger mini-btn" size="mini" data-openid="{{item.openid}}" bindtap="removeTeacher">移除</button>
+    </view>
+  </view>
+
+  <form bindsubmit="addTeacher">
+    <view class="section fallback-section">
+      <view class="section-title">备用添加</view>
+      <view class="muted">只有在无法走申请流程时使用。</view>
+      <view class="field">
+        <text class="label">老师 openid</text>
+        <input class="input" name="target_openid" placeholder="请输入对方 openid" />
+      </view>
+      <view class="field">
+        <text class="label">姓名/备注</text>
+        <input class="input" name="target_name" placeholder="例如：王老师" />
+      </view>
+      <button class="btn secondary" form-type="submit" loading="{{saving}}">备用添加</button>
+    </view>
+  </form>
+</view>

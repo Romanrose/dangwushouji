@@ -1,0 +1,49 @@
+<view class="page">
+  <view wx:if="{{demoMode}}" class="demo-banner">
+    <view>
+      <view class="demo-title">本地演示模式</view>
+      <view class="demo-sub">无 AppID 时数据保存在开发者工具本地缓存</view>
+    </view>
+    <view class="demo-actions">
+      <view class="demo-link" bindtap="seedDemo">示例</view>
+      <view class="demo-link" bindtap="switchStudent">学生</view>
+      <view class="demo-link muted-link" bindtap="clearDemo">清空</view>
+    </view>
+  </view>
+
+  <view class="ledger-header">
+    <view>
+      <view class="title">材料台账</view>
+      <view class="muted">检索、筛选和处理单份材料</view>
+    </view>
+    <view class="header-actions">
+      <view class="teacher-button" bindtap="goTeachers">老师管理</view>
+      <view class="student-button" bindtap="switchStudent">学生端</view>
+      <view class="add-button" bindtap="goCreate">新增</view>
+    </view>
+  </view>
+
+  <view class="section">
+    <input class="search" value="{{keyword}}" placeholder="搜索材料名称、编号、支部、领用人或签领人" bindinput="setKeyword" />
+    <view class="row filter-row">
+      <button wx:for="{{filters}}" wx:key="value" size="mini" class="filter {{activeFilter === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="setFilter">{{item.label}}</button>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{filteredMaterials.length === 0}}" class="empty">
+    <view>{{materials.length === 0 ? '暂无材料' : '没有匹配的材料'}}</view>
+    <view class="empty-action" bindtap="goCreate">新增第一份材料</view>
+  </view>
+
+  <view wx:for="{{filteredMaterials}}" wx:key="material_id" class="section item" data-id="{{item.material_id}}" bindtap="goDetail">
+    <view class="row">
+      <view class="item-title">{{item.name}}</view>
+      <view class="tag {{item.statusClass}}">{{item.statusText}}</view>
+    </view>
+    <view class="meta">编号：{{item.material_no}}</view>
+    <view class="meta">领用人所在支部：{{item.branch || '-'}}</view>
+    <view class="meta">领用人：{{item.assigned_user || '-'}}</view>
+    <view class="meta">签领人：{{item.signer_name || '-'}}</view>
+  </view>
+</view>

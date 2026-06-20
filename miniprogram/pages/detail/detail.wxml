@@ -1,0 +1,52 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{!material}}" class="empty">未找到材料</view>
+  <block wx:else>
+    <view class="section">
+      <view class="row">
+        <view class="title">{{material.name}}</view>
+        <view class="tag {{statusClass}}">{{statusText}}</view>
+      </view>
+      <view class="meta">材料 ID：{{material.material_id}}</view>
+      <view class="meta">材料编号：{{material.material_no}}</view>
+      <view class="meta">批次：{{material.batch_name || '-'}}</view>
+      <view class="meta">领用人所在支部：{{material.branch || '-'}}</view>
+      <view class="meta">领用人：{{material.assigned_user || '-'}}</view>
+      <view class="meta">签领人：{{material.signer_name || '-'}}</view>
+      <view class="meta">领取截止：{{material.receive_deadline || '-'}}</view>
+      <view class="meta">回收截止：{{material.return_deadline || '-'}}</view>
+      <view wx:if="{{material.remark}}" class="remark">{{material.remark}}</view>
+    </view>
+
+    <view class="section">
+      <view class="label">扫码入口</view>
+      <view class="qr-wrapper">
+        <canvas type="2d" id="qrCanvas" class="qr-canvas"></canvas>
+      </view>
+      <view class="path">{{scanPath}}</view>
+      <view class="action-row">
+        <button class="btn ghost" size="mini" bindtap="copyPath">复制路径</button>
+        <button class="btn ghost" size="mini" bindtap="saveQR">保存二维码</button>
+        <button class="btn" size="mini" bindtap="openScan">打开登记页</button>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="row">
+        <view class="section-title">流转记录</view>
+        <view class="muted">{{records.length}} 条</view>
+      </view>
+      <view wx:if="{{records.length === 0}}" class="empty small">暂无记录</view>
+      <view wx:for="{{records}}" wx:key="_id" class="record">
+        <view class="row">
+          <view class="record-title">{{item.actionText}}</view>
+          <view class="muted">{{item.action_time_text}}</view>
+        </view>
+        <view class="meta">领用人：{{item.person || '-'}}</view>
+        <view class="meta">签领人：{{item.operator || '-'}}</view>
+        <view wx:if="{{item.completeness}}" class="meta">完整性：{{item.completeness}}</view>
+        <view wx:if="{{item.remark}}" class="meta">备注：{{item.remark}}</view>
+      </view>
+    </view>
+  </block>
+</view>

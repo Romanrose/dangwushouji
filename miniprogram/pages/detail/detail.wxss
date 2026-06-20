@@ -1,0 +1,61 @@
+.meta {
+  margin-top: 12rpx;
+  color: #475569;
+}
+
+.remark {
+  margin-top: 18rpx;
+  padding: 18rpx;
+  background: #f8fafc;
+  border-radius: 10rpx;
+  color: #334155;
+}
+
+.path {
+  padding: 18rpx;
+  border-radius: 10rpx;
+  background: #f8fafc;
+  color: #0f172a;
+  word-break: break-all;
+  font-size: 24rpx;
+  margin-top: 12rpx;
+}
+
+.qr-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 24rpx 0;
+}
+
+.qr-canvas {
+  width: 340rpx;
+  height: 340rpx;
+}
+
+.action-row {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 18rpx;
+}
+
+.action-row button {
+  flex: 1;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.record {
+  padding: 18rpx 0;
+  border-top: 1rpx solid #e2e8f0;
+}
+
+.record-title {
+  font-weight: 700;
+}
+
+.small {
+  padding: 24rpx;
+}

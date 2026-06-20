@@ -1,0 +1,150 @@
+.dashboard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  background: #ffffff;
+  border: 1rpx solid #e2e8f0;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.completion {
+  min-width: 150rpx;
+  text-align: right;
+}
+
+.completion-num {
+  color: #0f766e;
+  font-size: 52rpx;
+  font-weight: 800;
+}
+
+.completion-label {
+  color: #64748b;
+  font-size: 24rpx;
+}
+
+.progress-section {
+  background: #ffffff;
+  border: 1rpx solid #e2e8f0;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.progress-track {
+  display: flex;
+  width: 100%;
+  height: 28rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: #e2e8f0;
+}
+
+.progress-bar {
+  height: 100%;
+}
+
+.pending {
+  background: #f59e0b;
+}
+
+.active {
+  background: #0f766e;
+}
+
+.done {
+  background: #16a34a;
+}
+
+.legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 12rpx;
+  margin-top: 18rpx;
+  color: #475569;
+  font-size: 24rpx;
+}
+
+.dot {
+  display: inline-block;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  margin-right: 8rpx;
+}
+
+.pending-dot {
+  background: #f59e0b;
+}
+
+.active-dot {
+  background: #0f766e;
+}
+
+.done-dot {
+  background: #16a34a;
+}
+
+.section-title,
+.item-title {
+  font-weight: 700;
+}
+
+.risk-item,
+.branch-item,
+.record-item {
+  padding: 20rpx 0;
+  border-top: 1rpx solid #e2e8f0;
+}
+
+.risk-tag,
+.record-tag {
+  padding: 6rpx 12rpx;
+  border-radius: 999rpx;
+  color: #0f766e;
+  background: #ccfbf1;
+  font-size: 24rpx;
+}
+
+.risk-tag {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.done-tag {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.branch-line {
+  display: flex;
+  width: 100%;
+  height: 16rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  margin-top: 14rpx;
+  background: #e2e8f0;
+}
+
+.branch-bar {
+  height: 100%;
+}
+
+.branch-meta {
+  margin-top: 10rpx;
+  color: #64748b;
+  font-size: 24rpx;
+}
+
+.meta {
+  margin-top: 10rpx;
+  color: #475569;
+  font-size: 26rpx;
+}
+
+.small {
+  padding: 24rpx;
+}

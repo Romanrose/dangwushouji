@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/rpc.js": {
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/health",
+      "destination": "/api/rpc?health=1"
+    }
+  ]
+}
