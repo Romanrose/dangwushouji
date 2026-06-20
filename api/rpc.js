@@ -79,6 +79,8 @@ function mapMaterial(row) {
     returned_at: row.returned_at,
     completeness: row.completeness || '',
     created_by: row.created_by || '',
+    deleted_by: row.deleted_by || '',
+    deleted_at: row.deleted_at,
     created_at: row.created_at,
     updated_at: row.updated_at
   }
@@ -168,6 +170,8 @@ async function ensureSchema(sql) {
       returned_at TIMESTAMPTZ,
       completeness TEXT,
       created_by TEXT,
+      deleted_by TEXT,
+      deleted_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
@@ -214,6 +218,8 @@ async function ensureSchema(sql) {
     )
   `
   await sql`ALTER TABLE materials ADD COLUMN IF NOT EXISTS signer_name TEXT`
+  await sql`ALTER TABLE materials ADD COLUMN IF NOT EXISTS deleted_by TEXT`
+  await sql`ALTER TABLE materials ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ`
   await sql`CREATE INDEX IF NOT EXISTS idx_teacher_applications_status ON teacher_applications(status)`
   schemaReady = true
 }
@@ -266,7 +272,7 @@ async function materialGet(sql, data) {
   const materialId = cleanText(data.material_id)
   if (!materialId) throw new Error('缺少 material_id')
 
-  const materialRows = await sql`SELECT * FROM materials WHERE material_id = ${materialId} LIMIT 1`
+  const materialRows = await sql`SELECT * FROM materials WHERE material_id = ${materialId} AND deleted_at IS NULL LIMIT 1`
   const material = mapMaterial(materialRows[0])
   if (!material) throw new Error('材料不存在')
 
@@ -300,7 +306,7 @@ async function materialReceive(sql, data) {
   if (!BRANCH_OPTIONS.includes(branch)) throw new Error('领用人所在支部不在可选范围内')
   if (!operator) throw new Error('签领人不能为空')
 
-  const materialRows = await sql`SELECT * FROM materials WHERE material_id = ${materialId} LIMIT 1`
+  const materialRows = await sql`SELECT * FROM materials WHERE material_id = ${materialId} AND deleted_at IS NULL LIMIT 1`
   const material = materialRows[0]
   if (!material) throw new Error('材料不存在')
   if (material.status !== 'pending_receive') throw new Error('当前状态不能领取')
@@ -338,7 +344,7 @@ async function materialReturn(sql, data) {
   if (!materialId) throw new Error('缺少 material_id')
   if (!operator) throw new Error('签领人不能为空')
 
-  const materialRows = await sql`SELECT * FROM materials WHERE material_id = ${materialId} LIMIT 1`
+  const materialRows = await sql`SELECT * FROM materials WHERE material_id = ${materialId} AND deleted_at IS NULL LIMIT 1`
   const material = materialRows[0]
   if (!material) throw new Error('材料不存在')
   if (material.status !== 'received') throw new Error('当前状态不能回收')
@@ -378,9 +384,10 @@ async function dashboardStats(sql) {
         COUNT(*) FILTER (WHERE status = 'received')::INT AS received,
         COUNT(*) FILTER (WHERE status = 'returned')::INT AS returned
       FROM materials
+      WHERE deleted_at IS NULL
     `,
-    sql`SELECT * FROM materials ORDER BY created_at DESC LIMIT 100`,
-    sql`SELECT * FROM materials WHERE status = 'received' ORDER BY updated_at DESC LIMIT 100`,
+    sql`SELECT * FROM materials WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 100`,
+    sql`SELECT * FROM materials WHERE status = 'received' AND deleted_at IS NULL ORDER BY updated_at DESC LIMIT 100`,
     sql`
       SELECT
         COALESCE(NULLIF(branch, ''), '未填写支部') AS branch,
@@ -389,6 +396,7 @@ async function dashboardStats(sql) {
         COUNT(*) FILTER (WHERE status = 'received')::INT AS received,
         COUNT(*) FILTER (WHERE status = 'returned')::INT AS returned
       FROM materials
+      WHERE deleted_at IS NULL
       GROUP BY COALESCE(NULLIF(branch, ''), '未填写支部')
       ORDER BY total DESC
     `,
@@ -402,6 +410,37 @@ async function dashboardStats(sql) {
     branchSummary: branchRows,
     recentRecords: recordRows.map(mapRecord)
   }
+}
+
+async function materialDelete(sql, data) {
+  await ensureTeacherRequest(sql, data)
+  const materialId = cleanText(data.material_id)
+  const deletedBy = cleanText(data.openid) || 'teacher'
+  const reason = cleanText(data.reason) || '老师端删除'
+  if (!materialId) throw new Error('缺少 material_id')
+
+  const rows = await sql`
+    UPDATE materials
+    SET deleted_at = NOW(),
+        deleted_by = ${deletedBy},
+        updated_at = NOW()
+    WHERE material_id = ${materialId}
+      AND deleted_at IS NULL
+    RETURNING *
+  `
+  const material = rows[0]
+  if (!material) throw new Error('材料不存在或已删除')
+
+  await sql`
+    INSERT INTO circulation_records (
+      material_id, material_no, action_type, operator, remark, action_openid, action_time
+    )
+    VALUES (
+      ${materialId}, ${material.material_no}, 'delete', ${deletedBy}, ${reason}, ${deletedBy}, NOW()
+    )
+  `
+
+  return { ok: true, material: mapMaterial(material) }
 }
 
 async function applyTeacher(sql, data) {
@@ -556,6 +595,7 @@ async function dispatch(sql, name, data) {
   if (name === 'materialGet') return materialGet(sql, data)
   if (name === 'materialReceive') return materialReceive(sql, data)
   if (name === 'materialReturn') return materialReturn(sql, data)
+  if (name === 'materialDelete') return materialDelete(sql, data)
   if (name === 'dashboardStats') {
     await ensureTeacherRequest(sql, data)
     return dashboardStats(sql)

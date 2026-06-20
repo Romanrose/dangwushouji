@@ -59,3 +59,21 @@
 .small {
   padding: 24rpx;
 }
+
+.danger-zone {
+  margin: 32rpx 24rpx 48rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid #fee2e2;
+}
+
+.danger {
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+.danger-hint {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #991b1b;
+  line-height: 1.5;
+}

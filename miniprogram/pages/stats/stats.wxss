@@ -119,6 +119,11 @@
   background: #dcfce7;
 }
 
+.delete-tag {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
 .branch-line {
   display: flex;
   width: 100%;

@@ -48,5 +48,10 @@
         <view wx:if="{{item.remark}}" class="meta">备注：{{item.remark}}</view>
       </view>
     </view>
+
+    <view class="danger-zone">
+      <button class="btn danger" loading="{{deleting}}" bindtap="deleteMaterial">删除这份材料</button>
+      <view class="danger-hint">仅老师端可删除。删除后将从台账、统计和扫码登记中隐藏。</view>
+    </view>
   </block>
 </view>

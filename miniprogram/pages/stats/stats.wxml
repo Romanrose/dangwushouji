@@ -69,7 +69,7 @@
     <view wx:for="{{recentRecords}}" wx:key="_id" class="record-item">
       <view class="row">
         <view class="item-title">{{item.material_no}}</view>
-        <view class="record-tag {{item.action_type === 'return' ? 'done-tag' : ''}}">{{item.actionText}}</view>
+        <view class="record-tag {{item.actionClass}}">{{item.actionText}}</view>
       </view>
       <view class="meta">领用人：{{item.person || '-'}}｜签领人：{{item.operator || '-'}}｜{{item.action_time_text}}</view>
     </view>

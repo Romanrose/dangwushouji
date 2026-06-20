@@ -49,7 +49,8 @@ Page({
       }))
       const recentRecords = (data.recentRecords || []).map((item) => ({
         ...item,
-        actionText: item.action_type === 'return' ? '回收' : '领取',
+        actionText: this.getActionText(item.action_type),
+        actionClass: this.getActionClass(item.action_type),
         action_time_text: formatTime(item.action_time)
       }))
       this.setData({
@@ -68,6 +69,19 @@ Page({
       wx.showToast({ title: '加载失败', icon: 'none' })
       console.error(err)
     }
+  },
+
+  getActionText(actionType) {
+    if (actionType === 'receive') return '领取'
+    if (actionType === 'return') return '回收'
+    if (actionType === 'delete') return '删除'
+    return '操作'
+  },
+
+  getActionClass(actionType) {
+    if (actionType === 'return') return 'done-tag'
+    if (actionType === 'delete') return 'delete-tag'
+    return ''
   },
 
   goDetail(event) {

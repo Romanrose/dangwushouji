@@ -5,6 +5,7 @@ const { drawQRCode } = require('../../utils/qrcode')
 Page({
   data: {
     loading: true,
+    deleting: false,
     materialId: '',
     material: null,
     records: [],
@@ -48,7 +49,7 @@ Page({
       const material = res.result.material
       const records = (res.result.records || []).map((record) => ({
         ...record,
-        actionText: record.action_type === 'receive' ? '领取' : '回收',
+        actionText: this.getActionText(record.action_type),
         action_time_text: formatTime(record.action_time)
       }))
       this.setData({
@@ -67,6 +68,13 @@ Page({
       wx.showToast({ title: '加载失败', icon: 'none' })
       console.error(err)
     }
+  },
+
+  getActionText(actionType) {
+    if (actionType === 'receive') return '领取'
+    if (actionType === 'return') return '回收'
+    if (actionType === 'delete') return '删除'
+    return '操作'
   },
 
   copyPath() {
@@ -109,5 +117,43 @@ Page({
           }
         })
       })
+  },
+
+  deleteMaterial() {
+    if (this.data.deleting || !this.data.materialId) return
+    wx.showModal({
+      title: '删除材料',
+      content: '删除后这份材料会从台账、统计和扫码登记中隐藏。确定删除吗？',
+      confirmText: '删除',
+      confirmColor: '#b91c1c',
+      success: async (res) => {
+        if (!res.confirm) return
+        this.setData({ deleting: true })
+        try {
+          await api.callFunction({
+            name: 'materialDelete',
+            data: {
+              material_id: this.data.materialId,
+              reason: '老师端删除'
+            }
+          })
+          wx.showToast({ title: '已删除', icon: 'success' })
+          setTimeout(() => {
+            wx.navigateBack({
+              fail: () => wx.switchTab({ url: '/pages/index/index' })
+            })
+          }, 500)
+        } catch (err) {
+          wx.showModal({
+            title: '删除失败',
+            content: err.message || '无法删除材料',
+            showCancel: false
+          })
+          console.error(err)
+        } finally {
+          this.setData({ deleting: false })
+        }
+      }
+    })
   }
 })

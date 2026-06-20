@@ -387,7 +387,7 @@ function localCallFunction(name, data = {}) {
 
   if (name === 'materialGet') {
     const materialId = cleanText(data.material_id)
-    const material = store.materials.find((item) => item.material_id === materialId)
+    const material = store.materials.find((item) => item.material_id === materialId && !item.deleted_at)
     if (!material) throw new Error('材料不存在')
     const records = store.records
       .filter((item) => item.material_id === materialId)
@@ -397,7 +397,7 @@ function localCallFunction(name, data = {}) {
 
   if (name === 'materialReceive') {
     const materialId = cleanText(data.material_id)
-    const material = store.materials.find((item) => item.material_id === materialId)
+    const material = store.materials.find((item) => item.material_id === materialId && !item.deleted_at)
     if (!material) throw new Error('材料不存在')
     if (material.status !== 'pending_receive') throw new Error('当前状态不能领取')
     if (!cleanText(data.person)) throw new Error('领用人不能为空')
@@ -429,7 +429,7 @@ function localCallFunction(name, data = {}) {
 
   if (name === 'materialReturn') {
     const materialId = cleanText(data.material_id)
-    const material = store.materials.find((item) => item.material_id === materialId)
+    const material = store.materials.find((item) => item.material_id === materialId && !item.deleted_at)
     if (!material) throw new Error('材料不存在')
     if (material.status !== 'received') throw new Error('当前状态不能回收')
     if (!cleanText(data.operator)) throw new Error('签领人不能为空')
@@ -456,17 +456,39 @@ function localCallFunction(name, data = {}) {
     return { result: { ok: true, status: 'returned' } }
   }
 
+  if (name === 'materialDelete') {
+    const materialId = cleanText(data.material_id)
+    const material = store.materials.find((item) => item.material_id === materialId && !item.deleted_at)
+    if (!material) throw new Error('材料不存在或已删除')
+    material.deleted_at = nowIso()
+    material.deleted_by = 'demo-openid'
+    material.updated_at = nowIso()
+    store.records.unshift({
+      _id: `record-${Date.now()}`,
+      material_id: materialId,
+      material_no: material.material_no,
+      action_type: 'delete',
+      operator: 'demo-openid',
+      remark: cleanText(data.reason) || '老师端删除',
+      action_openid: 'demo-openid',
+      action_time: nowIso()
+    })
+    setStore(store)
+    return { result: { ok: true, material } }
+  }
+
   if (name === 'dashboardStats') {
+    const visibleMaterials = store.materials.filter((item) => !item.deleted_at)
     const recentRecords = store.records
       .slice()
       .sort((a, b) => new Date(b.action_time) - new Date(a.action_time))
       .slice(0, 20)
     return {
       result: {
-        stats: getStats(store.materials),
-        recentMaterials: store.materials.slice(0, 100),
-        unreturned: store.materials.filter((item) => item.status === 'received').slice(0, 100),
-        branchSummary: getBranchSummary(store.materials),
+        stats: getStats(visibleMaterials),
+        recentMaterials: visibleMaterials.slice(0, 100),
+        unreturned: visibleMaterials.filter((item) => item.status === 'received').slice(0, 100),
+        branchSummary: getBranchSummary(visibleMaterials),
         recentRecords
       }
     }
