@@ -19,6 +19,7 @@
     <view class="header-actions">
       <view class="teacher-button" bindtap="goTeachers">老师管理</view>
       <view class="student-button" bindtap="switchStudent">学生端</view>
+      <view class="batch-button" bindtap="goBatch">批量</view>
       <view class="add-button" bindtap="goCreate">新增</view>
     </view>
   </view>

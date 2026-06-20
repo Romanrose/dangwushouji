@@ -24,6 +24,13 @@ function cleanText(value) {
   return String(value || '').trim()
 }
 
+function cleanList(value) {
+  const source = Array.isArray(value)
+    ? value
+    : String(value || '').split(/[\s,，;；]+/)
+  return Array.from(new Set(source.map(cleanText).filter(Boolean)))
+}
+
 function getShanghaiDatePart() {
   const parts = new Intl.DateTimeFormat('zh-CN', {
     timeZone: 'Asia/Shanghai',
@@ -224,7 +231,7 @@ async function ensureSchema(sql) {
   schemaReady = true
 }
 
-async function insertMaterial(sql, data, createdBy) {
+function validateMaterialInput(data) {
   const name = cleanText(data.name)
   const branch = cleanText(data.branch)
   const assignedUser = cleanText(data.assigned_user)
@@ -234,6 +241,11 @@ async function insertMaterial(sql, data, createdBy) {
   if (!BRANCH_OPTIONS.includes(branch)) throw new Error('领用人所在支部不在可选范围内')
   if (!assignedUser) throw new Error('领用人姓名不能为空')
   if (!signerName) throw new Error('签领人不能为空')
+  return { name, branch, assignedUser, signerName }
+}
+
+async function insertMaterial(sql, data, createdBy) {
+  const { name, branch, assignedUser, signerName } = validateMaterialInput(data)
 
   const materialNo = await makeMaterialNo(sql)
   const materialId = materialNo
@@ -266,6 +278,22 @@ async function materialCreate(sql, data) {
 async function studentSubmitMaterial(sql, data) {
   const createdBy = cleanText(data.openid) || 'student'
   return insertMaterial(sql, data, createdBy)
+}
+
+async function materialBatchCreate(sql, data) {
+  await ensureTeacherRequest(sql, data)
+  const items = Array.isArray(data.items) ? data.items : []
+  if (items.length === 0) throw new Error('缺少批量新增明细')
+  if (items.length > 200) throw new Error('单次最多批量新增 200 条')
+
+  const createdBy = cleanText(data.openid) || 'teacher'
+  const materials = []
+  items.forEach(validateMaterialInput)
+  for (const item of items) {
+    const result = await insertMaterial(sql, item, createdBy)
+    materials.push(result.material)
+  }
+  return { ok: true, count: materials.length, materials }
 }
 
 async function materialGet(sql, data) {
@@ -443,6 +471,43 @@ async function materialDelete(sql, data) {
   return { ok: true, material: mapMaterial(material) }
 }
 
+async function materialBatchDelete(sql, data) {
+  await ensureTeacherRequest(sql, data)
+  const materialIds = cleanList(data.material_ids || data.materialIds)
+  const deletedBy = cleanText(data.openid) || 'teacher'
+  const reason = cleanText(data.reason) || '老师端批量删除'
+  if (materialIds.length === 0) throw new Error('请填写要删除的材料编号')
+  if (materialIds.length > 200) throw new Error('单次最多批量删除 200 条')
+
+  const rows = await sql`
+    WITH updated AS (
+      UPDATE materials
+      SET deleted_at = NOW(),
+          deleted_by = ${deletedBy},
+          updated_at = NOW()
+      WHERE material_id = ANY(${materialIds})
+        AND deleted_at IS NULL
+      RETURNING *
+    ),
+    inserted AS (
+      INSERT INTO circulation_records (
+        material_id, material_no, action_type, operator, remark, action_openid, action_time
+      )
+      SELECT material_id, material_no, 'delete', ${deletedBy}, ${reason}, ${deletedBy}, NOW()
+      FROM updated
+      RETURNING 1
+    )
+    SELECT * FROM updated
+  `
+  const deletedIds = new Set(rows.map((item) => item.material_id))
+  return {
+    ok: true,
+    count: rows.length,
+    deletedMaterials: rows.map(mapMaterial),
+    notFoundIds: materialIds.filter((id) => !deletedIds.has(id))
+  }
+}
+
 async function applyTeacher(sql, data) {
   const openid = cleanText(data.openid)
   if (!openid || openid === 'vercel-api' || openid === 'demo-openid') {
@@ -587,6 +652,7 @@ async function dispatch(sql, name, data) {
     return { teachers: rows }
   }
   if (name === 'materialCreate') return materialCreate(sql, data)
+  if (name === 'materialBatchCreate') return materialBatchCreate(sql, data)
   if (name === 'studentSubmitMaterial') return studentSubmitMaterial(sql, data)
   if (name === 'applyTeacher') return applyTeacher(sql, data)
   if (name === 'listTeacherApplications') return listTeacherApplications(sql, data)
@@ -596,6 +662,7 @@ async function dispatch(sql, name, data) {
   if (name === 'materialReceive') return materialReceive(sql, data)
   if (name === 'materialReturn') return materialReturn(sql, data)
   if (name === 'materialDelete') return materialDelete(sql, data)
+  if (name === 'materialBatchDelete') return materialBatchDelete(sql, data)
   if (name === 'dashboardStats') {
     await ensureTeacherRequest(sql, data)
     return dashboardStats(sql)

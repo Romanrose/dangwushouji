@@ -4,6 +4,7 @@
     "pages/student/home/home",
     "pages/teachers/teachers",
     "pages/create/create",
+    "pages/batch/batch",
     "pages/detail/detail",
     "pages/scan/scan",
     "pages/stats/stats"

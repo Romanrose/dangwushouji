@@ -145,6 +145,13 @@ function cleanText(value) {
   return String(value || '').trim()
 }
 
+function cleanList(value) {
+  const source = Array.isArray(value)
+    ? value
+    : String(value || '').split(/[\s,，;；]+/)
+  return Array.from(new Set(source.map(cleanText).filter(Boolean)))
+}
+
 function getDatePart() {
   const date = new Date()
   const pad = (num) => String(num).padStart(2, '0')
@@ -352,6 +359,61 @@ function localCallFunction(name, data = {}) {
     return { result: { material } }
   }
 
+  if (name === 'materialBatchCreate') {
+    const items = Array.isArray(data.items) ? data.items : []
+    if (items.length === 0) throw new Error('缺少批量新增明细')
+    if (items.length > 200) throw new Error('单次最多批量新增 200 条')
+
+    items.forEach((item) => {
+      const branch = cleanText(item.branch)
+      const assignedUser = cleanText(item.assigned_user)
+      const signerName = cleanText(item.signer_name)
+      if (!cleanText(item.name)) throw new Error('材料名称不能为空')
+      if (!branch) throw new Error('领用人所在支部不能为空')
+      if (!BRANCH_OPTIONS.includes(branch)) throw new Error('领用人所在支部不在可选范围内')
+      if (!assignedUser) throw new Error('领用人姓名不能为空')
+      if (!signerName) throw new Error('签领人不能为空')
+    })
+
+    const materials = items.map((item) => {
+      const branch = cleanText(item.branch)
+      const assignedUser = cleanText(item.assigned_user)
+      const signerName = cleanText(item.signer_name)
+      const materialId = makeMaterialId(store.materials)
+      const material = {
+        _id: materialId,
+        material_id: materialId,
+        material_no: materialId,
+        name: cleanText(item.name),
+        material_type: cleanText(item.material_type),
+        material_category: cleanText(item.material_category),
+        person_file_name: cleanText(item.person_file_name),
+        meeting_year: cleanText(item.meeting_year),
+        meeting_book_type: cleanText(item.meeting_book_type),
+        specific_material_name: cleanText(item.specific_material_name),
+        batch_name: cleanText(item.batch_name),
+        branch,
+        assigned_user: assignedUser,
+        signer_name: signerName,
+        receive_deadline: cleanText(item.receive_deadline),
+        return_deadline: cleanText(item.return_deadline),
+        remark: cleanText(item.remark),
+        status: 'pending_receive',
+        created_by: 'demo-openid',
+        created_at: nowIso(),
+        updated_at: nowIso()
+      }
+      store.materials.push(material)
+      return material
+    })
+    store.materials = [
+      ...materials,
+      ...store.materials.filter((item) => !materials.find((created) => created.material_id === item.material_id))
+    ]
+    setStore(store)
+    return { result: { ok: true, count: materials.length, materials } }
+  }
+
   if (name === 'demoSeed') {
     if (store.materials.length > 0) {
       return { result: { ok: true, material: store.materials[0] } }
@@ -475,6 +537,41 @@ function localCallFunction(name, data = {}) {
     })
     setStore(store)
     return { result: { ok: true, material } }
+  }
+
+  if (name === 'materialBatchDelete') {
+    const materialIds = cleanList(data.material_ids || data.materialIds)
+    if (materialIds.length === 0) throw new Error('请填写要删除的材料编号')
+    if (materialIds.length > 200) throw new Error('单次最多批量删除 200 条')
+    const deletedMaterials = []
+    materialIds.forEach((materialId) => {
+      const material = store.materials.find((item) => item.material_id === materialId && !item.deleted_at)
+      if (!material) return
+      material.deleted_at = nowIso()
+      material.deleted_by = 'demo-openid'
+      material.updated_at = nowIso()
+      deletedMaterials.push(material)
+      store.records.unshift({
+        _id: `record-${Date.now()}-${materialId}`,
+        material_id: materialId,
+        material_no: material.material_no,
+        action_type: 'delete',
+        operator: 'demo-openid',
+        remark: cleanText(data.reason) || '老师端批量删除',
+        action_openid: 'demo-openid',
+        action_time: nowIso()
+      })
+    })
+    setStore(store)
+    const deletedIds = deletedMaterials.map((item) => item.material_id)
+    return {
+      result: {
+        ok: true,
+        count: deletedMaterials.length,
+        deletedMaterials,
+        notFoundIds: materialIds.filter((id) => !deletedIds.includes(id))
+      }
+    }
   }
 
   if (name === 'dashboardStats') {

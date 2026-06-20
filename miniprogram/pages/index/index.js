@@ -128,6 +128,16 @@ Page({
     })
   },
 
+  goBatch() {
+    wx.navigateTo({
+      url: '/pages/batch/batch',
+      fail: (err) => {
+        console.error('navigate to batch failed', err)
+        wx.showToast({ title: '无法打开批量页', icon: 'none' })
+      }
+    })
+  },
+
   async seedDemo() {
     try {
       await api.callFunction({ name: 'demoSeed' })
