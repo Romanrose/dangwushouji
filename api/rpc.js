@@ -287,13 +287,79 @@ async function materialBatchCreate(sql, data) {
   if (items.length > 200) throw new Error('单次最多批量新增 200 条')
 
   const createdBy = cleanText(data.openid) || 'teacher'
-  const materials = []
-  items.forEach(validateMaterialInput)
-  for (const item of items) {
-    const result = await insertMaterial(sql, item, createdBy)
-    materials.push(result.material)
-  }
-  return { ok: true, count: materials.length, materials }
+  const datePart = getShanghaiDatePart()
+  const payload = items.map((item) => {
+    const { name, branch, assignedUser, signerName } = validateMaterialInput(item)
+    return {
+      name,
+      material_type: cleanText(item.material_type),
+      material_category: cleanText(item.material_category),
+      person_file_name: cleanText(item.person_file_name),
+      meeting_year: cleanText(item.meeting_year),
+      meeting_book_type: cleanText(item.meeting_book_type),
+      specific_material_name: cleanText(item.specific_material_name),
+      batch_name: cleanText(item.batch_name),
+      branch,
+      assigned_user: assignedUser,
+      signer_name: signerName,
+      receive_deadline: cleanText(item.receive_deadline),
+      return_deadline: cleanText(item.return_deadline),
+      remark: cleanText(item.remark)
+    }
+  })
+
+  const rows = await sql`
+    WITH input AS (
+      SELECT value, ord
+      FROM jsonb_array_elements(${JSON.stringify(payload)}::jsonb) WITH ORDINALITY AS item(value, ord)
+    ),
+    seq AS (
+      INSERT INTO material_sequences (date_part, last_no, updated_at)
+      VALUES (${datePart}, ${items.length}, NOW())
+      ON CONFLICT (date_part) DO UPDATE
+      SET last_no = material_sequences.last_no + ${items.length},
+          updated_at = NOW()
+      RETURNING last_no
+    ),
+    prepared AS (
+      SELECT
+        (${datePart} || '-' || LPAD((seq.last_no - ${items.length} + input.ord)::TEXT, 3, '0')) AS material_no,
+        input.value
+      FROM input
+      CROSS JOIN seq
+      ORDER BY input.ord
+    )
+    INSERT INTO materials (
+      material_id, material_no, name, material_type, material_category,
+      person_file_name, meeting_year, meeting_book_type, specific_material_name,
+      batch_name, branch, assigned_user, signer_name, receive_deadline, return_deadline,
+      remark, status, created_by, created_at, updated_at
+    )
+    SELECT
+      material_no,
+      material_no,
+      value->>'name',
+      value->>'material_type',
+      value->>'material_category',
+      value->>'person_file_name',
+      value->>'meeting_year',
+      value->>'meeting_book_type',
+      value->>'specific_material_name',
+      value->>'batch_name',
+      value->>'branch',
+      value->>'assigned_user',
+      value->>'signer_name',
+      value->>'receive_deadline',
+      value->>'return_deadline',
+      value->>'remark',
+      'pending_receive',
+      ${createdBy},
+      NOW(),
+      NOW()
+    FROM prepared
+    RETURNING *
+  `
+  return { ok: true, count: rows.length, materials: rows.map(mapMaterial) }
 }
 
 async function materialGet(sql, data) {
@@ -480,12 +546,16 @@ async function materialBatchDelete(sql, data) {
   if (materialIds.length > 200) throw new Error('单次最多批量删除 200 条')
 
   const rows = await sql`
-    WITH updated AS (
+    WITH input AS (
+      SELECT value #>> '{}' AS material_id
+      FROM jsonb_array_elements(${JSON.stringify(materialIds)}::jsonb) AS item(value)
+    ),
+    updated AS (
       UPDATE materials
       SET deleted_at = NOW(),
           deleted_by = ${deletedBy},
           updated_at = NOW()
-      WHERE material_id = ANY(${materialIds})
+      WHERE material_id IN (SELECT material_id FROM input)
         AND deleted_at IS NULL
       RETURNING *
     ),
