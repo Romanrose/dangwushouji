@@ -39,6 +39,15 @@ Page({
       this.loadDashboard()
     } catch (err) {
       console.error(err)
+      if (api.getVercelApiBaseUrl()) {
+        this.setData({ loading: false })
+        wx.showModal({
+          title: '连接失败',
+          content: '当前连接线上数据库，无法加载老师端数据。请检查网络后重试。',
+          showCancel: false
+        })
+        return
+      }
       api.setDemoRole('teacher')
       this.setData({
         demoMode: true

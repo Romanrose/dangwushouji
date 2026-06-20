@@ -77,7 +77,7 @@ Page({
       return
     }
     this.setData({
-      demoMode: !api.canUseCloud()
+      demoMode: !api.canUseCloud() && !api.getVercelApiBaseUrl()
     })
   },
 
