@@ -7,6 +7,10 @@ Page({
     materials: [],
     filteredMaterials: [],
     demoMode: false,
+    deleting: false,
+    selectionMode: false,
+    selectedIds: [],
+    selectedCount: 0,
     activeFilter: 'all',
     keyword: '',
     filters: [
@@ -73,8 +77,13 @@ Page({
         statusText: statusText(item.status),
         statusClass: statusClass(item.status)
       }))
+      const visibleIds = new Set(materials.map((item) => item.material_id))
+      const selectedIds = this.data.selectedIds.filter((id) => visibleIds.has(id))
       this.setData({
         materials,
+        selectedIds,
+        selectedCount: selectedIds.length,
+        selectionMode: this.data.selectionMode && selectedIds.length > 0,
         loading: false
       })
       this.applyFilter()
@@ -96,7 +105,8 @@ Page({
   },
 
   applyFilter() {
-    const { materials, activeFilter, keyword } = this.data
+    const { materials, activeFilter, keyword, selectedIds } = this.data
+    const selectedSet = new Set(selectedIds)
     const normalizedKeyword = String(keyword || '').trim().toLowerCase()
     const statusFiltered = activeFilter === 'all'
       ? materials
@@ -115,7 +125,60 @@ Page({
         ].join(' ').toLowerCase()
         return text.includes(normalizedKeyword)
       })
-    this.setData({ filteredMaterials })
+    this.setData({
+      filteredMaterials: filteredMaterials.map((item) => ({
+        ...item,
+        selected: selectedSet.has(item.material_id)
+      }))
+    })
+  },
+
+  toggleSelectionMode() {
+    const nextSelectionMode = !this.data.selectionMode
+    this.setData({
+      selectionMode: nextSelectionMode,
+      selectedIds: nextSelectionMode ? this.data.selectedIds : [],
+      selectedCount: nextSelectionMode ? this.data.selectedIds.length : 0
+    })
+    this.applyFilter()
+  },
+
+  clearSelection() {
+    this.setData({
+      selectedIds: [],
+      selectedCount: 0
+    })
+    this.applyFilter()
+  },
+
+  selectAllFiltered() {
+    const ids = this.data.filteredMaterials.map((item) => item.material_id)
+    this.setData({
+      selectedIds: ids,
+      selectedCount: ids.length
+    })
+    this.applyFilter()
+  },
+
+  toggleMaterialSelection(event) {
+    const materialId = event.currentTarget.dataset.id
+    this.toggleMaterialSelectionById(materialId)
+  },
+
+  toggleMaterialSelectionById(materialId) {
+    if (!materialId) return
+    const selectedSet = new Set(this.data.selectedIds)
+    if (selectedSet.has(materialId)) {
+      selectedSet.delete(materialId)
+    } else {
+      selectedSet.add(materialId)
+    }
+    const selectedIds = Array.from(selectedSet)
+    this.setData({
+      selectedIds,
+      selectedCount: selectedIds.length
+    })
+    this.applyFilter()
   },
 
   goCreate() {
@@ -171,8 +234,112 @@ Page({
     wx.navigateTo({ url: '/pages/teachers/teachers' })
   },
 
-  goDetail(event) {
+  handleItemTap(event) {
     const materialId = event.currentTarget.dataset.id
+    if (this.data.selectionMode) {
+      this.toggleMaterialSelectionById(materialId)
+      return
+    }
     wx.navigateTo({ url: `/pages/detail/detail?material_id=${materialId}` })
+  },
+
+  showItemMenu(event) {
+    const materialId = event.currentTarget.dataset.id
+    wx.showActionSheet({
+      itemList: ['删除'],
+      itemColor: '#b91c1c',
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          this.confirmDeleteMaterial(materialId)
+        }
+      }
+    })
+  },
+
+  confirmDeleteMaterial(materialId) {
+    if (!materialId || this.data.deleting) return
+    wx.showModal({
+      title: '删除材料',
+      content: '删除后这份材料会从台账、统计和扫码登记中隐藏。确定删除吗？',
+      confirmText: '删除',
+      confirmColor: '#b91c1c',
+      success: async (res) => {
+        if (!res.confirm) return
+        this.setData({ deleting: true })
+        try {
+          await api.callFunction({
+            name: 'materialDelete',
+            data: {
+              material_id: materialId,
+              reason: '台账三点菜单删除'
+            }
+          })
+          wx.showToast({ title: '已删除', icon: 'success' })
+          await this.loadDashboard()
+        } catch (err) {
+          wx.showModal({
+            title: '删除失败',
+            content: err.message || '无法删除材料',
+            showCancel: false
+          })
+          console.error(err)
+        } finally {
+          this.setData({ deleting: false })
+        }
+      }
+    })
+  },
+
+  deleteSelectedMaterials() {
+    const materialIds = this.data.selectedIds
+    if (this.data.deleting) return
+    if (materialIds.length === 0) {
+      wx.showToast({ title: '请先选择材料', icon: 'none' })
+      return
+    }
+    wx.showModal({
+      title: '删除选中材料',
+      content: `将删除 ${materialIds.length} 条材料。删除后会从台账、统计和扫码登记中隐藏。`,
+      confirmText: '删除',
+      confirmColor: '#b91c1c',
+      success: async (res) => {
+        if (!res.confirm) return
+        this.setData({ deleting: true })
+        try {
+          const deleteRes = await api.callFunction({
+            name: 'materialBatchDelete',
+            data: {
+              material_ids: materialIds,
+              reason: '台账批量选中删除'
+            }
+          })
+          const result = deleteRes.result || {}
+          const missing = result.notFoundIds || []
+          this.setData({
+            selectedIds: [],
+            selectedCount: 0,
+            selectionMode: false
+          })
+          wx.showToast({ title: `已删除 ${result.count || 0} 条`, icon: 'success' })
+          await this.loadDashboard()
+          if (missing.length > 0) {
+            wx.showModal({
+              title: '部分未删除',
+              content: `${missing.length} 条材料不存在或已删除。`,
+              showCancel: false
+            })
+          }
+        } catch (err) {
+          wx.showModal({
+            title: '批量删除失败',
+            content: err.message || '无法删除选中材料',
+            showCancel: false
+          })
+          console.error(err)
+        } finally {
+          this.setData({ deleting: false })
+        }
+      }
+    })
   }
 })

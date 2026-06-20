@@ -80,9 +80,10 @@
 }
 
 .add-button {
-  min-width: 104rpx;
-  height: 64rpx;
-  line-height: 64rpx;
+  min-width: 0;
+  width: 104rpx;
+  height: 56rpx;
+  line-height: 56rpx;
   border-radius: 10rpx;
   color: #ffffff;
   background: #0f766e;
@@ -92,13 +93,15 @@
 }
 
 .header-actions {
+  width: 218rpx;
   display: flex;
-  flex-direction: column;
-  gap: 12rpx;
+  flex-wrap: wrap;
+  gap: 10rpx;
 }
 
 .student-button {
-  min-width: 104rpx;
+  min-width: 0;
+  width: 104rpx;
   height: 56rpx;
   line-height: 56rpx;
   border: 1rpx solid #0f766e;
@@ -110,8 +113,28 @@
   text-align: center;
 }
 
+.select-button {
+  min-width: 0;
+  width: 104rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  border: 1rpx solid #7c3aed;
+  border-radius: 10rpx;
+  color: #7c3aed;
+  background: #ffffff;
+  font-size: 26rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.select-button.active {
+  color: #ffffff;
+  background: #7c3aed;
+}
+
 .batch-button {
-  min-width: 104rpx;
+  min-width: 0;
+  width: 104rpx;
   height: 56rpx;
   line-height: 56rpx;
   border: 1rpx solid #2563eb;
@@ -124,7 +147,8 @@
 }
 
 .teacher-button {
-  min-width: 128rpx;
+  min-width: 0;
+  width: 218rpx;
   height: 56rpx;
   line-height: 56rpx;
   border: 1rpx solid #334155;
@@ -150,14 +174,140 @@
   padding: 22rpx;
 }
 
+.item.selected {
+  border-color: #7c3aed;
+  background: #faf5ff;
+}
+
+.item-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 14rpx;
+}
+
+.select-dot {
+  flex: 0 0 auto;
+  width: 40rpx;
+  height: 40rpx;
+  margin-top: 4rpx;
+  border: 2rpx solid #94a3b8;
+  border-radius: 50%;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.select-dot.checked {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-color: #7c3aed;
+  background: #7c3aed;
+}
+
+.select-mark {
+  color: #ffffff;
+  font-size: 26rpx;
+  font-weight: 800;
+  line-height: 1;
+}
+
 .item-title {
+  flex: 1;
+  min-width: 0;
   max-width: 430rpx;
   font-size: 32rpx;
   font-weight: 700;
+  line-height: 1.35;
+  word-break: break-all;
+}
+
+.item-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.more-button {
+  width: 56rpx;
+  height: 48rpx;
+  line-height: 38rpx;
+  border: 1rpx solid #cbd5e1;
+  border-radius: 999rpx;
+  color: #475569;
+  background: #ffffff;
+  font-size: 34rpx;
+  font-weight: 800;
+  text-align: center;
 }
 
 .meta {
   margin-top: 10rpx;
   color: #475569;
   font-size: 26rpx;
+}
+
+.bulk-bar {
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: calc(24rpx + env(safe-area-inset-bottom));
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding: 18rpx;
+  border: 1rpx solid #cbd5e1;
+  border-radius: 12rpx;
+  background: #ffffff;
+  box-shadow: 0 12rpx 36rpx rgba(15, 23, 42, 0.16);
+}
+
+.bulk-title {
+  font-weight: 800;
+}
+
+.bulk-sub {
+  margin-top: 4rpx;
+  color: #64748b;
+  font-size: 24rpx;
+}
+
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.bulk-link,
+.bulk-delete {
+  min-width: 72rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  padding: 0 14rpx;
+  border-radius: 10rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.bulk-link {
+  color: #0f766e;
+  background: #ecfdf5;
+}
+
+.bulk-link.muted {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+.bulk-delete {
+  color: #ffffff;
+  background: #b91c1c;
+}
+
+.bulk-delete.disabled {
+  color: #94a3b8;
+  background: #e2e8f0;
 }

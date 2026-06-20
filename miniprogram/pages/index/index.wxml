@@ -14,11 +14,12 @@
   <view class="ledger-header">
     <view>
       <view class="title">材料台账</view>
-      <view class="muted">检索、筛选和处理单份材料</view>
+      <view class="muted">检索、筛选和处理材料</view>
     </view>
     <view class="header-actions">
       <view class="teacher-button" bindtap="goTeachers">老师管理</view>
       <view class="student-button" bindtap="switchStudent">学生端</view>
+      <view class="select-button {{selectionMode ? 'active' : ''}}" bindtap="toggleSelectionMode">{{selectionMode ? '取消' : '选择'}}</view>
       <view class="batch-button" bindtap="goBatch">批量</view>
       <view class="add-button" bindtap="goCreate">新增</view>
     </view>
@@ -37,14 +38,32 @@
     <view class="empty-action" bindtap="goCreate">新增第一份材料</view>
   </view>
 
-  <view wx:for="{{filteredMaterials}}" wx:key="material_id" class="section item" data-id="{{item.material_id}}" bindtap="goDetail">
-    <view class="row">
+  <view wx:for="{{filteredMaterials}}" wx:key="material_id" class="section item {{item.selected ? 'selected' : ''}}" data-id="{{item.material_id}}" bindtap="handleItemTap">
+    <view class="item-top">
+      <view wx:if="{{selectionMode}}" class="select-dot {{item.selected ? 'checked' : ''}}" data-id="{{item.material_id}}" catchtap="toggleMaterialSelection">
+        <view wx:if="{{item.selected}}" class="select-mark">✓</view>
+      </view>
       <view class="item-title">{{item.name}}</view>
-      <view class="tag {{item.statusClass}}">{{item.statusText}}</view>
+      <view class="item-actions">
+        <view class="tag {{item.statusClass}}">{{item.statusText}}</view>
+        <view class="more-button" data-id="{{item.material_id}}" catchtap="showItemMenu">...</view>
+      </view>
     </view>
     <view class="meta">编号：{{item.material_no}}</view>
     <view class="meta">领用人所在支部：{{item.branch || '-'}}</view>
     <view class="meta">领用人：{{item.assigned_user || '-'}}</view>
     <view class="meta">签领人：{{item.signer_name || '-'}}</view>
+  </view>
+
+  <view wx:if="{{selectionMode}}" class="bulk-bar">
+    <view>
+      <view class="bulk-title">已选 {{selectedCount}} 条</view>
+      <view class="bulk-sub">当前筛选 {{filteredMaterials.length}} 条</view>
+    </view>
+    <view class="bulk-actions">
+      <view class="bulk-link" catchtap="selectAllFiltered">全选当前</view>
+      <view class="bulk-link muted" catchtap="clearSelection">清空</view>
+      <view class="bulk-delete {{selectedCount === 0 ? 'disabled' : ''}}" catchtap="deleteSelectedMaterials">删除</view>
+    </view>
   </view>
 </view>
