@@ -5,7 +5,8 @@ const WX_APP_SECRET = process.env.WX_APP_SECRET || ''
 const ALLOW_DEMO_AUTH = process.env.ALLOW_DEMO_AUTH === 'true'
 const BRANCH_OPTIONS = [
   '博士生党支部',
-  '教职工党支部',
+  '教工第一党支部',
+  '教工第二党支部',
   '硕士生第一党支部',
   '硕士生第二党支部',
   '本科生党支部'

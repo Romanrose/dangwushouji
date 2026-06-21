@@ -3,7 +3,8 @@ const ROLE_KEY = 'dangwu_demo_role'
 const config = require('../config')
 const BRANCH_OPTIONS = [
   '博士生党支部',
-  '教职工党支部',
+  '教工第一党支部',
+  '教工第二党支部',
   '硕士生第一党支部',
   '硕士生第二党支部',
   '本科生党支部'
