@@ -83,7 +83,7 @@ Page({
         materials,
         selectedIds,
         selectedCount: selectedIds.length,
-        selectionMode: this.data.selectionMode && selectedIds.length > 0,
+        selectionMode: this.data.selectionMode,
         loading: false
       })
       this.applyFilter()
@@ -244,6 +244,7 @@ Page({
   },
 
   showItemMenu(event) {
+    if (this.data.selectionMode) return
     const materialId = event.currentTarget.dataset.id
     wx.showActionSheet({
       itemList: ['删除'],

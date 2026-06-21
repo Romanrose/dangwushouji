@@ -46,7 +46,7 @@
       <view class="item-title">{{item.name}}</view>
       <view class="item-actions">
         <view class="tag {{item.statusClass}}">{{item.statusText}}</view>
-        <view class="more-button" data-id="{{item.material_id}}" catchtap="showItemMenu">...</view>
+        <view wx:if="{{!selectionMode}}" class="more-button" data-id="{{item.material_id}}" catchtap="showItemMenu">...</view>
       </view>
     </view>
     <view class="meta">编号：{{item.material_no}}</view>
@@ -54,6 +54,8 @@
     <view class="meta">领用人：{{item.assigned_user || '-'}}</view>
     <view class="meta">签领人：{{item.signer_name || '-'}}</view>
   </view>
+
+  <view wx:if="{{selectionMode}}" class="bulk-spacer"></view>
 
   <view wx:if="{{selectionMode}}" class="bulk-bar">
     <view>
