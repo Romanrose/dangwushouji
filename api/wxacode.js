@@ -65,7 +65,7 @@ module.exports = async function handler(req, res) {
       return
     }
 
-    res.setHeader('content-type', 'image/png')
+    res.setHeader('content-type', contentType || 'image/jpeg')
     res.setHeader('cache-control', 'public, max-age=86400, s-maxage=86400')
     res.status(200).send(buffer)
   } catch (err) {
