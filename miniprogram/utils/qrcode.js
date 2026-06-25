@@ -284,6 +284,42 @@ function reserveFormatArea(mat) {
   }
 }
 
+function placeFormatInfo(mat, maskNum) {
+  // EC Level M + selected mask. Format bits include BCH code and fixed mask 0x5412.
+  const ecLevelBits = 0
+  let data = (ecLevelBits << 3) | maskNum
+  let bits = data << 10
+  const generator = 0x537
+  for (let i = 14; i >= 10; i--) {
+    if ((bits >> i) & 1) bits ^= generator << (i - 10)
+  }
+  const format = (((data << 10) | bits) ^ 0x5412) & 0x7fff
+  const getBit = (index) => (format >> index) & 1
+
+  const primary = [
+    [8, 0], [8, 1], [8, 2], [8, 3], [8, 4], [8, 5],
+    [8, 7], [8, 8], [7, 8], [5, 8], [4, 8], [3, 8],
+    [2, 8], [1, 8], [0, 8]
+  ]
+  const secondary = [
+    [mat.size - 1, 8], [mat.size - 2, 8], [mat.size - 3, 8],
+    [mat.size - 4, 8], [mat.size - 5, 8], [mat.size - 6, 8],
+    [mat.size - 7, 8], [8, mat.size - 8], [8, mat.size - 7],
+    [8, mat.size - 6], [8, mat.size - 5], [8, mat.size - 4],
+    [8, mat.size - 3], [8, mat.size - 2], [8, mat.size - 1]
+  ]
+
+  for (let i = 0; i < 15; i++) {
+    const bit = getBit(i)
+    const [r1, c1] = primary[i]
+    const [r2, c2] = secondary[i]
+    mat.matrix[r1][c1] = bit
+    mat.matrix[r2][c2] = bit
+    mat.reserved[r1][c1] = true
+    mat.reserved[r2][c2] = true
+  }
+}
+
 function placeData(mat, dataBytes) {
   let bitIdx = 0
   const totalBits = dataBytes.length * 8
@@ -352,6 +388,7 @@ function generateQR(text) {
 
   // 应用掩码（选择 0 号掩码，简化版）
   applyMask(mat, 0)
+  placeFormatInfo(mat, 0)
 
   return { matrix: mat.matrix, size: mat.size }
 }

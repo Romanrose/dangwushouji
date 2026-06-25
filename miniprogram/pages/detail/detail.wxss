@@ -28,8 +28,8 @@
 }
 
 .qr-canvas {
-  width: 340rpx;
-  height: 340rpx;
+  width: 348rpx;
+  height: 348rpx;
 }
 
 .qr-note {

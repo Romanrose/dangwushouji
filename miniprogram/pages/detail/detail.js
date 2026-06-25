@@ -94,8 +94,8 @@ Page({
         if (!res[0]) return
         const canvas = res[0].node
         drawQRCode(canvas, this.data.qrPayload || this.data.materialId, {
-          moduleSize: 8,
-          margin: 16
+          moduleSize: 12,
+          margin: 48
         })
       })
   },
