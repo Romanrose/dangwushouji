@@ -21,12 +21,14 @@
     <view class="section">
       <view class="label">扫码入口</view>
       <view class="qr-wrapper">
-        <canvas type="2d" id="qrCanvas" class="qr-canvas"></canvas>
+        <image wx:if="{{officialQrUrl && !useFallbackQr}}" class="qr-image" src="{{officialQrUrl}}" mode="aspectFit" bindload="onOfficialQrLoad" binderror="onOfficialQrError"></image>
+        <canvas wx:else type="2d" id="qrCanvas" class="qr-canvas"></canvas>
       </view>
+      <view class="qr-note">{{officialQrUrl && !useFallbackQr ? '微信官方小程序码，建议用于打印和转发' : '普通路径二维码，仅适合本机调试或手动复制路径'}}</view>
       <view class="path">{{scanPath}}</view>
       <view class="action-row">
         <button class="btn ghost" size="mini" bindtap="copyPath">复制路径</button>
-        <button class="btn ghost" size="mini" bindtap="saveQR">保存二维码</button>
+        <button class="btn ghost" size="mini" bindtap="saveQR">保存码图</button>
         <button class="btn" size="mini" bindtap="openScan">打开登记页</button>
       </view>
     </view>

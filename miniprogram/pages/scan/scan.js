@@ -10,6 +10,14 @@ const BRANCH_OPTIONS = [
   '本科生党支部'
 ]
 
+function getMaterialIdFromOptions(options = {}) {
+  if (options.material_id) return options.material_id
+  const scene = decodeURIComponent(options.scene || '').trim()
+  if (!scene) return ''
+  const match = scene.match(/(?:^|[?&])(?:material_id|m)=([^&]+)/)
+  return match ? decodeURIComponent(match[1]) : scene
+}
+
 Page({
   data: {
     loading: true,
@@ -29,7 +37,7 @@ Page({
   async onLoad(options) {
     await api.login()
     this.setData({
-      materialId: options.material_id || '',
+      materialId: getMaterialIdFromOptions(options),
       isTeacher: api.isTeacher()
     })
     this.loadMaterial()

@@ -32,6 +32,19 @@
   height: 340rpx;
 }
 
+.qr-image {
+  width: 340rpx;
+  height: 340rpx;
+  background: #ffffff;
+}
+
+.qr-note {
+  color: #64748b;
+  font-size: 24rpx;
+  text-align: center;
+  line-height: 1.5;
+}
+
 .action-row {
   display: flex;
   gap: 16rpx;

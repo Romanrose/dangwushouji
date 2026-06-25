@@ -11,7 +11,9 @@ Page({
     records: [],
     statusText: '',
     statusClass: '',
-    scanPath: ''
+    scanPath: '',
+    officialQrUrl: '',
+    useFallbackQr: false
   },
 
   async onLoad(options) {
@@ -58,11 +60,15 @@ Page({
         statusText: statusText(material.status),
         statusClass: statusClass(material.status),
         scanPath: `/pages/scan/scan?material_id=${material.material_id}`,
+        officialQrUrl: this.getOfficialQrUrl(material.material_id),
+        useFallbackQr: false,
         loading: false
       })
 
-      // 绘制二维码
-      this.drawQR()
+      if (!this.data.officialQrUrl) {
+        this.setData({ useFallbackQr: true })
+        this.drawQR()
+      }
     } catch (err) {
       this.setData({ loading: false, material: null })
       wx.showToast({ title: '加载失败', icon: 'none' })
@@ -79,6 +85,22 @@ Page({
 
   copyPath() {
     wx.setClipboardData({ data: this.data.scanPath })
+  },
+
+  getOfficialQrUrl(materialId) {
+    const baseUrl = api.getVercelApiBaseUrl()
+    if (!baseUrl || !materialId) return ''
+    return `${baseUrl}/api/wxacode?material_id=${encodeURIComponent(materialId)}`
+  },
+
+  onOfficialQrLoad() {
+    this.setData({ useFallbackQr: false })
+  },
+
+  onOfficialQrError(err) {
+    console.warn('official wxacode load failed, fallback to path qr', err)
+    this.setData({ useFallbackQr: true })
+    this.drawQR()
   },
 
   openScan() {
@@ -100,6 +122,25 @@ Page({
   },
 
   saveQR() {
+    if (this.data.officialQrUrl && !this.data.useFallbackQr) {
+      wx.downloadFile({
+        url: this.data.officialQrUrl,
+        success: (result) => {
+          if (result.statusCode !== 200) {
+            wx.showToast({ title: '保存失败，请重试', icon: 'none' })
+            return
+          }
+          wx.saveImageToPhotosAlbum({
+            filePath: result.tempFilePath,
+            success: () => wx.showToast({ title: '已保存到相册', icon: 'success' }),
+            fail: () => wx.showToast({ title: '保存失败，请授权相册权限', icon: 'none' })
+          })
+        },
+        fail: () => wx.showToast({ title: '下载失败', icon: 'none' })
+      })
+      return
+    }
+
     const query = wx.createSelectorQuery()
     query.select('#qrCanvas')
       .fields({ node: true })

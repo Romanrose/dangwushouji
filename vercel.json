@@ -2,6 +2,9 @@
   "functions": {
     "api/rpc.js": {
       "maxDuration": 10
+    },
+    "api/wxacode.js": {
+      "maxDuration": 10
     }
   },
   "rewrites": [
