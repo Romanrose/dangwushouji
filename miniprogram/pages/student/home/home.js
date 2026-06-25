@@ -42,6 +42,15 @@ function getYearOptions() {
   return Array.from({ length: 6 }, (_, index) => String(currentYear - index))
 }
 
+function parseMaterialId(value) {
+  const text = decodeURIComponent(String(value || '')).trim()
+  if (!text) return ''
+  const match = text.match(/(?:^|[?&#/])(?:material_id|scene|m)=([^&#]+)/)
+  if (match) return decodeURIComponent(match[1]).trim()
+  const idMatch = text.match(/\d{8}-\d{3,}/)
+  return idMatch ? idMatch[0] : text
+}
+
 Page({
   data: {
     materialId: '',
@@ -251,8 +260,28 @@ Page({
     this.setData({ materialId: event.detail.value })
   },
 
+  scanMaterialCode() {
+    wx.scanCode({
+      onlyFromCamera: false,
+      scanType: ['qrCode'],
+      success: (res) => {
+        const materialId = parseMaterialId(res.result)
+        if (!materialId) {
+          wx.showToast({ title: '未识别到材料 ID', icon: 'none' })
+          return
+        }
+        this.setData({ materialId })
+        wx.navigateTo({ url: `/pages/scan/scan?material_id=${materialId}` })
+      },
+      fail: (err) => {
+        if (err.errMsg && err.errMsg.includes('cancel')) return
+        wx.showToast({ title: '扫码失败', icon: 'none' })
+      }
+    })
+  },
+
   goScan() {
-    const materialId = String(this.data.materialId || '').trim()
+    const materialId = parseMaterialId(this.data.materialId)
     if (!materialId) {
       wx.showToast({ title: '请输入材料 ID', icon: 'none' })
       return

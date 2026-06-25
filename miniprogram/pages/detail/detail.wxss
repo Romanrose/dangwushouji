@@ -32,12 +32,6 @@
   height: 340rpx;
 }
 
-.qr-image {
-  width: 340rpx;
-  height: 340rpx;
-  background: #ffffff;
-}
-
 .qr-note {
   color: #64748b;
   font-size: 24rpx;

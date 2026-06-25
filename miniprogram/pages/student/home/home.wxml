@@ -89,7 +89,10 @@
       <text class="label">材料 ID</text>
       <input class="input" value="{{materialId}}" placeholder="例如 20260620-001" bindinput="setMaterialId" />
     </view>
-    <button class="btn secondary" bindtap="goScan">进入登记</button>
+    <view class="scan-actions">
+      <button class="btn ghost" bindtap="scanMaterialCode">扫码识别</button>
+      <button class="btn secondary" bindtap="goScan">进入登记</button>
+    </view>
   </view>
 
   <view class="section">

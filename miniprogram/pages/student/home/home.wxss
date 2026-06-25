@@ -53,3 +53,12 @@ button {
 .scan-field {
   margin-top: 20rpx;
 }
+
+.scan-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.scan-actions button {
+  flex: 1;
+}
