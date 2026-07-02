@@ -11,6 +11,8 @@
       <view class="meta">领用人所在支部：{{material.branch || '-'}}</view>
       <view class="meta">领用人：{{material.assigned_user || '-'}}</view>
       <view class="meta">签领人：{{material.signer_name || '-'}}</view>
+      <view wx:if="{{material.return_requirement === 'no_return'}}" class="meta">回收要求：无需回收</view>
+      <view wx:elif="{{material.return_requirement === 'need_return'}}" class="meta">回收要求：待回收</view>
     </view>
 
     <form wx:if="{{material.status === 'pending_receive'}}" bindsubmit="receive">
@@ -30,11 +32,17 @@
           <input class="input" name="operator" value="{{material.signer_name}}" placeholder="请输入签领人姓名" />
         </view>
         <view class="field">
+          <text class="label">回收要求</text>
+          <picker mode="selector" range="{{returnRequirementOptions}}" value="{{selectedReturnRequirementIndex}}" bindchange="setReturnRequirement">
+            <view class="picker">{{returnRequirementOptions[selectedReturnRequirementIndex]}}</view>
+          </picker>
+        </view>
+        <view class="field">
           <text class="label">备注</text>
           <textarea class="textarea" name="remark" placeholder="可留空"></textarea>
         </view>
       </view>
-      <button class="btn" form-type="submit" loading="{{saving}}">确认领取</button>
+      <button class="btn" form-type="submit" loading="{{saving}}">{{returnRequirement === 'no_return' ? '确认领取并完成' : '确认领取'}}</button>
     </form>
 
     <form wx:elif="{{material.status === 'received'}}" bindsubmit="returnMaterial">

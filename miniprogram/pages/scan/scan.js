@@ -30,6 +30,10 @@ Page({
     branchOptions: BRANCH_OPTIONS,
     selectedBranchIndex: -1,
     receiveBranch: '',
+    returnRequirementOptions: ['无需回收', '待回收'],
+    returnRequirementValues: ['no_return', 'need_return'],
+    selectedReturnRequirementIndex: 1,
+    returnRequirement: 'need_return',
     completenessOptions: ['完整', '部分缺失', '异常'],
     completeness: '完整'
   },
@@ -79,6 +83,14 @@ Page({
     })
   },
 
+  setReturnRequirement(event) {
+    const selectedReturnRequirementIndex = Number(event.detail.value)
+    this.setData({
+      selectedReturnRequirementIndex,
+      returnRequirement: this.data.returnRequirementValues[selectedReturnRequirementIndex] || 'need_return'
+    })
+  },
+
   setReceiveBranch(event) {
     const selectedBranchIndex = Number(event.detail.value)
     this.setData({
@@ -107,10 +119,14 @@ Page({
           person: form.person,
           branch: this.data.receiveBranch,
           operator: form.operator,
+          return_requirement: this.data.returnRequirement,
           remark: form.remark
         }
       })
-      wx.showToast({ title: '领取成功', icon: 'success' })
+      wx.showToast({
+        title: this.data.returnRequirement === 'no_return' ? '登记完成' : '领取成功',
+        icon: 'success'
+      })
       await this.loadMaterial()
     } catch (err) {
       wx.showToast({ title: err.message || '领取失败', icon: 'none' })

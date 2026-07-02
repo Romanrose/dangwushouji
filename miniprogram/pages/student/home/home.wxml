@@ -1,11 +1,32 @@
 <view class="page">
   <view class="student-head">
-    <view class="title">资料收集</view>
-    <view class="muted">请按实际情况填写资料信息，提交后老师端会同步更新。</view>
+    <view class="title">材料登记</view>
+    <view class="muted">请选择老师已发布的待领取材料，进入后完成领取或回收登记。</view>
+  </view>
+
+  <view class="section scan-section">
+    <view class="student-title">选择待领取材料</view>
+    <view class="muted">老师转发的正式小程序码可以直接打开登记页；从学生端进入时，可在这里选择当前已发布且未领取的材料。</view>
+    <view class="field">
+      <text class="label">当前待领取</text>
+      <picker mode="selector" range="{{pendingMaterialLabels}}" value="{{selectedPendingIndex}}" disabled="{{loadingPending || pendingMaterials.length === 0}}" bindchange="setPendingMaterial">
+        <view class="picker">{{loadingPending ? '正在加载...' : (selectedPendingLabel || (pendingMaterials.length ? '请选择待领取材料' : '暂无待领取材料'))}}</view>
+      </picker>
+    </view>
+    <view class="field scan-field">
+      <text class="label">材料编号</text>
+      <input class="input" value="{{materialId}}" placeholder="例如 20260620-001" bindinput="setMaterialId" />
+    </view>
+    <view class="scan-actions">
+      <button class="btn ghost" loading="{{loadingPending}}" bindtap="refreshPendingMaterials">刷新列表</button>
+      <button class="btn secondary" bindtap="goScan">进入登记</button>
+    </view>
   </view>
 
   <form bindsubmit="submitCollection">
     <view class="section">
+      <view class="student-title">补录材料（可选）</view>
+      <view class="muted form-note">仅在老师未提前发布材料时使用。正常领取请使用上方待领取列表或老师转发的小程序码。</view>
       <view class="field">
         <text class="label">材料名称</text>
         <picker mode="selector" range="{{materialOptions}}" range-key="label" value="{{selectedMaterialIndex}}" bindchange="setMaterialType">
@@ -79,21 +100,8 @@
     </view>
 
     <view wx:if="{{saveMessage}}" class="save-message">{{saveMessage}}</view>
-    <button class="btn" form-type="submit" loading="{{saving}}">提交资料</button>
+    <button class="btn" form-type="submit" loading="{{saving}}">补录材料</button>
   </form>
-
-  <view class="section scan-section">
-    <view class="student-title">已有材料登记</view>
-    <view class="muted">如果老师给了材料 ID 或二维码，可在这里进入领取/回收登记。</view>
-    <view class="field scan-field">
-      <text class="label">材料 ID</text>
-      <input class="input" value="{{materialId}}" placeholder="例如 20260620-001" bindinput="setMaterialId" />
-    </view>
-    <view class="scan-actions">
-      <button class="btn ghost" bindtap="scanMaterialCode">扫码识别</button>
-      <button class="btn secondary" bindtap="goScan">进入登记</button>
-    </view>
-  </view>
 
   <view class="section">
     <view class="student-title">老师权限</view>

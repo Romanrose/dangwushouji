@@ -458,6 +458,14 @@ function localCallFunction(name, data = {}) {
     return { result: { material, records } }
   }
 
+  if (name === 'studentPendingMaterials') {
+    const materials = store.materials
+      .filter((item) => item.status === 'pending_receive' && !item.deleted_at)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 200)
+    return { result: { materials } }
+  }
+
   if (name === 'materialReceive') {
     const materialId = cleanText(data.material_id)
     const material = store.materials.find((item) => item.material_id === materialId && !item.deleted_at)
@@ -473,6 +481,13 @@ function localCallFunction(name, data = {}) {
     material.received_branch = cleanText(data.branch)
     material.received_operator = cleanText(data.operator)
     material.received_at = nowIso()
+    material.return_requirement = cleanText(data.return_requirement) === 'no_return' ? 'no_return' : 'need_return'
+    if (material.return_requirement === 'no_return') {
+      material.status = 'returned'
+      material.returned_operator = material.received_operator
+      material.returned_at = nowIso()
+      material.completeness = '无需回收'
+    }
     material.updated_at = nowIso()
     store.records.unshift({
       _id: `record-${Date.now()}`,
@@ -486,8 +501,23 @@ function localCallFunction(name, data = {}) {
       action_openid: 'demo-openid',
       action_time: nowIso()
     })
+    if (material.return_requirement === 'no_return') {
+      store.records.unshift({
+        _id: `record-${Date.now()}-no-return`,
+        material_id: materialId,
+        material_no: material.material_no,
+        action_type: 'return',
+        person: material.received_person,
+        branch: material.received_branch,
+        operator: material.received_operator,
+        completeness: '无需回收',
+        remark: cleanText(data.remark) || '领取时登记为无需回收',
+        action_openid: 'demo-openid',
+        action_time: nowIso()
+      })
+    }
     setStore(store)
-    return { result: { ok: true, status: 'received' } }
+    return { result: { ok: true, status: material.status, return_requirement: material.return_requirement } }
   }
 
   if (name === 'materialReturn') {

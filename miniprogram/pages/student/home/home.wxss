@@ -17,6 +17,11 @@
   line-height: 1.5;
 }
 
+.form-note {
+  margin-bottom: 20rpx;
+  line-height: 1.5;
+}
+
 button {
   margin-top: 20rpx;
 }

@@ -49,7 +49,7 @@ Page({
       }))
       const recentRecords = (data.recentRecords || []).map((item) => ({
         ...item,
-        actionText: this.getActionText(item.action_type),
+        actionText: this.getActionText(item),
         actionClass: this.getActionClass(item.action_type),
         action_time_text: formatTime(item.action_time)
       }))
@@ -71,8 +71,10 @@ Page({
     }
   },
 
-  getActionText(actionType) {
+  getActionText(item) {
+    const actionType = item.action_type
     if (actionType === 'receive') return '领取'
+    if (actionType === 'return' && item.completeness === '无需回收') return '无需回收'
     if (actionType === 'return') return '回收'
     if (actionType === 'delete') return '删除'
     return '操作'

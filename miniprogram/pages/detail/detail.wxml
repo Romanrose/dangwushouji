@@ -13,6 +13,7 @@
       <view class="meta">领用人所在支部：{{material.branch || '-'}}</view>
       <view class="meta">领用人：{{material.assigned_user || '-'}}</view>
       <view class="meta">签领人：{{material.signer_name || '-'}}</view>
+      <view wx:if="{{returnRequirementText}}" class="meta">回收要求：{{returnRequirementText}}</view>
       <view class="meta">领取截止：{{material.receive_deadline || '-'}}</view>
       <view class="meta">回收截止：{{material.return_deadline || '-'}}</view>
       <view wx:if="{{material.remark}}" class="remark">{{material.remark}}</view>

@@ -86,6 +86,7 @@ function mapMaterial(row) {
     returned_operator: row.returned_operator || '',
     returned_at: row.returned_at,
     completeness: row.completeness || '',
+    return_requirement: row.return_requirement || '',
     created_by: row.created_by || '',
     deleted_by: row.deleted_by || '',
     deleted_at: row.deleted_at,
@@ -177,6 +178,7 @@ async function ensureSchema(sql) {
       returned_operator TEXT,
       returned_at TIMESTAMPTZ,
       completeness TEXT,
+      return_requirement TEXT,
       created_by TEXT,
       deleted_by TEXT,
       deleted_at TIMESTAMPTZ,
@@ -226,6 +228,7 @@ async function ensureSchema(sql) {
     )
   `
   await sql`ALTER TABLE materials ADD COLUMN IF NOT EXISTS signer_name TEXT`
+  await sql`ALTER TABLE materials ADD COLUMN IF NOT EXISTS return_requirement TEXT`
   await sql`ALTER TABLE materials ADD COLUMN IF NOT EXISTS deleted_by TEXT`
   await sql`ALTER TABLE materials ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ`
   await sql`CREATE INDEX IF NOT EXISTS idx_teacher_applications_status ON teacher_applications(status)`
@@ -387,12 +390,24 @@ async function materialGet(sql, data) {
   }
 }
 
+async function studentPendingMaterials(sql) {
+  const rows = await sql`
+    SELECT * FROM materials
+    WHERE status = 'pending_receive'
+      AND deleted_at IS NULL
+    ORDER BY created_at DESC
+    LIMIT 200
+  `
+  return { materials: rows.map(mapMaterial) }
+}
+
 async function materialReceive(sql, data) {
   const materialId = cleanText(data.material_id)
   const person = cleanText(data.person)
   const branch = cleanText(data.branch)
   const operator = cleanText(data.operator)
   const remark = cleanText(data.remark)
+  const returnRequirement = cleanText(data.return_requirement) === 'no_return' ? 'no_return' : 'need_return'
   const actionOpenid = cleanText(data.openid) || 'vercel-api'
 
   if (!materialId) throw new Error('缺少 material_id')
@@ -406,13 +421,20 @@ async function materialReceive(sql, data) {
   if (!material) throw new Error('材料不存在')
   if (material.status !== 'pending_receive') throw new Error('当前状态不能领取')
 
+  const nextStatus = returnRequirement === 'no_return' ? 'returned' : 'received'
+  const noReturnCompleteness = returnRequirement === 'no_return' ? '无需回收' : ''
+
   await sql`
     UPDATE materials
-    SET status = 'received',
+    SET status = ${nextStatus},
         received_person = ${person},
         received_branch = ${branch},
         received_operator = ${operator},
         received_at = NOW(),
+        returned_operator = CASE WHEN ${returnRequirement} = 'no_return' THEN ${operator} ELSE returned_operator END,
+        returned_at = CASE WHEN ${returnRequirement} = 'no_return' THEN NOW() ELSE returned_at END,
+        completeness = CASE WHEN ${returnRequirement} = 'no_return' THEN ${noReturnCompleteness} ELSE completeness END,
+        return_requirement = ${returnRequirement},
         updated_at = NOW()
     WHERE material_id = ${materialId}
   `
@@ -426,7 +448,21 @@ async function materialReceive(sql, data) {
     )
   `
 
-  return { ok: true, status: 'received' }
+  if (returnRequirement === 'no_return') {
+    await sql`
+      INSERT INTO circulation_records (
+        material_id, material_no, action_type, person, branch, operator,
+        completeness, remark, action_openid, action_time
+      )
+      VALUES (
+        ${materialId}, ${material.material_no}, 'return',
+        ${person}, ${branch}, ${operator}, ${noReturnCompleteness},
+        ${remark || '领取时登记为无需回收'}, ${actionOpenid}, NOW()
+      )
+    `
+  }
+
+  return { ok: true, status: nextStatus, return_requirement: returnRequirement }
 }
 
 async function materialReturn(sql, data) {
@@ -730,6 +766,7 @@ async function dispatch(sql, name, data) {
   if (name === 'approveTeacher') return approveTeacher(sql, data)
   if (name === 'rejectTeacher') return rejectTeacher(sql, data)
   if (name === 'materialGet') return materialGet(sql, data)
+  if (name === 'studentPendingMaterials') return studentPendingMaterials(sql)
   if (name === 'materialReceive') return materialReceive(sql, data)
   if (name === 'materialReturn') return materialReturn(sql, data)
   if (name === 'materialDelete') return materialDelete(sql, data)

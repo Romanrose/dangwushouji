@@ -16,7 +16,7 @@ Page({
     filters: [
       { value: 'all', label: '全部' },
       { value: 'pending_receive', label: '待领取' },
-      { value: 'received', label: '未回收' },
+      { value: 'received', label: '待回收' },
       { value: 'returned', label: '已回收' }
     ]
   },

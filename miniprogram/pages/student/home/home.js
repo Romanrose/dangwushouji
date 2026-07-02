@@ -51,10 +51,22 @@ function parseMaterialId(value) {
   return idMatch ? idMatch[0] : text
 }
 
+function buildPendingMaterialLabel(material) {
+  const no = material.material_no || material.material_id || '未编号'
+  const assignee = material.assigned_user ? `｜${material.assigned_user}` : ''
+  const branch = material.branch ? `｜${material.branch}` : ''
+  return `${no}｜${material.name}${assignee}${branch}`
+}
+
 Page({
   data: {
     materialId: '',
     demoMode: false,
+    loadingPending: false,
+    pendingMaterials: [],
+    pendingMaterialLabels: [],
+    selectedPendingIndex: -1,
+    selectedPendingLabel: '',
     saving: false,
     applyingTeacher: false,
     saveMessage: '',
@@ -89,6 +101,45 @@ Page({
     this.setData({
       demoMode: !api.canUseCloud() && !api.getVercelApiBaseUrl()
     })
+    this.loadPendingMaterials()
+  },
+
+  async loadPendingMaterials() {
+    this.setData({ loadingPending: true })
+    try {
+      const res = await api.callFunction({
+        name: 'studentPendingMaterials'
+      })
+      const pendingMaterials = res.result.materials || []
+      const pendingMaterialLabels = pendingMaterials.map(buildPendingMaterialLabel)
+      const currentIndex = pendingMaterials.findIndex((item) => item.material_id === this.data.materialId)
+      this.setData({
+        pendingMaterials,
+        pendingMaterialLabels,
+        selectedPendingIndex: currentIndex,
+        selectedPendingLabel: currentIndex >= 0 ? pendingMaterialLabels[currentIndex] : '',
+        loadingPending: false
+      })
+    } catch (err) {
+      this.setData({ loadingPending: false })
+      wx.showToast({ title: err.message || '加载材料失败', icon: 'none' })
+      console.error(err)
+    }
+  },
+
+  setPendingMaterial(event) {
+    const selectedPendingIndex = Number(event.detail.value)
+    const material = this.data.pendingMaterials[selectedPendingIndex]
+    if (!material) return
+    this.setData({
+      selectedPendingIndex,
+      selectedPendingLabel: this.data.pendingMaterialLabels[selectedPendingIndex],
+      materialId: material.material_id
+    })
+  },
+
+  refreshPendingMaterials() {
+    this.loadPendingMaterials()
   },
 
   setMaterialType(event) {
@@ -258,26 +309,6 @@ Page({
 
   setMaterialId(event) {
     this.setData({ materialId: event.detail.value })
-  },
-
-  scanMaterialCode() {
-    wx.scanCode({
-      onlyFromCamera: false,
-      scanType: ['qrCode'],
-      success: (res) => {
-        const materialId = parseMaterialId(res.result)
-        if (!materialId) {
-          wx.showToast({ title: '未识别到材料 ID', icon: 'none' })
-          return
-        }
-        this.setData({ materialId })
-        wx.navigateTo({ url: `/pages/scan/scan?material_id=${materialId}` })
-      },
-      fail: (err) => {
-        if (err.errMsg && err.errMsg.includes('cancel')) return
-        wx.showToast({ title: '扫码失败', icon: 'none' })
-      }
-    })
   },
 
   goScan() {

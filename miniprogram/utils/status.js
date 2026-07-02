@@ -1,6 +1,6 @@
 const STATUS_TEXT = {
   pending_receive: '待领取',
-  received: '已领取未回收',
+  received: '待回收',
   returned: '已回收'
 }
 

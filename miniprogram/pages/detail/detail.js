@@ -11,6 +11,7 @@ Page({
     records: [],
     statusText: '',
     statusClass: '',
+    returnRequirementText: '',
     scanPath: '',
     qrPayload: ''
   },
@@ -50,7 +51,7 @@ Page({
       const material = res.result.material
       const records = (res.result.records || []).map((record) => ({
         ...record,
-        actionText: this.getActionText(record.action_type),
+        actionText: this.getActionText(record, material),
         action_time_text: formatTime(record.action_time)
       }))
       this.setData({
@@ -58,6 +59,7 @@ Page({
         records,
         statusText: statusText(material.status),
         statusClass: statusClass(material.status),
+        returnRequirementText: this.getReturnRequirementText(material.return_requirement),
         scanPath: `/pages/scan/scan?material_id=${material.material_id}`,
         qrPayload: material.material_id,
         loading: false
@@ -71,8 +73,16 @@ Page({
     }
   },
 
-  getActionText(actionType) {
+  getReturnRequirementText(value) {
+    if (value === 'no_return') return '无需回收'
+    if (value === 'need_return') return '待回收'
+    return ''
+  },
+
+  getActionText(record, material) {
+    const actionType = record.action_type
     if (actionType === 'receive') return '领取'
+    if (actionType === 'return' && (record.completeness === '无需回收' || (material && material.return_requirement === 'no_return'))) return '无需回收'
     if (actionType === 'return') return '回收'
     if (actionType === 'delete') return '删除'
     return '操作'
